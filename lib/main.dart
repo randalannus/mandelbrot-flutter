@@ -53,7 +53,7 @@ class MyHomePage extends StatelessWidget {
                 return SizedBox(
                     width: constraints.widthConstraints().maxWidth,
                     height: constraints.heightConstraints().maxHeight,
-                    child: const MandelbrotViewer());
+                    child: MandelbrotViewer());
               }),
             ),
             const SideMenu()
@@ -122,9 +122,9 @@ void onRenderPressed(BuildContext context) {
 
   makeMandelbrotImage(
           settings.resolution, settings.depth, settings.center, settings.zoom)
-      .then((bytes) =>
-          Provider.of<MandelbrotImageProvider>(context, listen: false)
-              .update(null, bytes));
+      .then((image) =>
+          Provider.of<MandelbrotImageProvider>(context, listen: false).image =
+              image);
 }
 
 class ResolutionPicker extends StatelessWidget {

@@ -12,20 +12,29 @@ import 'dart:ui' as ui;
 import 'package:provider/provider.dart';
 
 class MandelbrotViewer extends StatelessWidget {
-  const MandelbrotViewer({
+  static const maxScale = 4.0;
+  static const minScale = 0.05;
+  final controller = TransformationController(Matrix4.diagonal3Values(1, 1, 1));
+
+  MandelbrotViewer({
     Key? key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final settings = Provider.of<SettingsProvider>(context, listen: false);
     return Consumer<MandelbrotImageProvider>(
         builder: (context, imageProvider, _) {
-      if (imageProvider.bytes == null) {
-        return const Center(child: Text("Loading"));
+      if (imageProvider.image == null) {
+        return const Center(child: Text("No image"));
       }
-      final img = imageUtil.decodeImage(imageProvider.bytes!);
-      return InteractiveViewer(child: Image);
+      return InteractiveViewer(
+          boundaryMargin: const EdgeInsets.all(2000.0),
+          minScale: minScale,
+          maxScale: maxScale,
+          transformationController: controller,
+          child: CustomPaint(
+            painter: MandelbrotPainter(imageProvider.image!),
+          ));
     });
   }
 }
@@ -63,19 +72,20 @@ class MandelbrotPainter extends CustomPainter {
   bool shouldRepaint(MandelbrotPainter oldDelegate) => true;
 }
 
-Future<Uint8List> makeMandelbrotImage(
+Future<ui.Image> makeMandelbrotImage(
     Resolution resolution, int depth, Complex center, num zoom) async {
   final c = Completer<ui.Image>();
   final pixels = await calcMandelbrotPixels(resolution, depth, center, zoom);
-  /*
+
   ui.decodeImageFromPixels(
     pixels.buffer.asUint8List(),
     resolution.width,
     resolution.height,
     ui.PixelFormat.rgba8888,
     c.complete,
-  );*/
-  return pixels.buffer.asUint8List();
+  );
+  return c.future;
+  //return pixels.buffer.asUint8List();
 }
 
 Future<Int32List> calcMandelbrotPixels(

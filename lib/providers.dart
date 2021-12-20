@@ -38,18 +38,18 @@ class SettingsProvider with ChangeNotifier {
 
 class MandelbrotImageProvider with ChangeNotifier {
   ui.Image? _image;
-  Uint8List? _bytes;
+  //Uint8List? _bytes;
 
   ui.Image? get image => _image;
-  Uint8List? get bytes => _bytes;
-  /*set image(ui.Image? img) {
+  set image(ui.Image? img) {
     _image = img;
     notifyListeners();
-  }*/
+  }
 
+  /*Uint8List? get bytes => _bytes;
   void update(ui.Image? image, Uint8List? bytes) {
     _image = image;
     _bytes = bytes;
     notifyListeners();
-  }
+  }*/
 }
