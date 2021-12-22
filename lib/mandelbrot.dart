@@ -75,7 +75,10 @@ class MandelbrotPainter extends CustomPainter {
 Future<ui.Image> makeMandelbrotImage(
     Resolution resolution, int depth, Complex center, num zoom) async {
   final c = Completer<ui.Image>();
+
+  Stopwatch stopwatch = Stopwatch()..start();
   final pixels = await calcMandelbrotPixels(resolution, depth, center, zoom);
+  print('Rendered in ${stopwatch.elapsed}');
 
   ui.decodeImageFromPixels(
     pixels.buffer.asUint8List(),
@@ -117,16 +120,17 @@ Future<Int32List> calcMandelbrotPixels(
 }
 
 int calculatePoint(Complex point, int depth) {
-  if (point.abs() >= 2) return 0;
-  if (point == Complex.zero) return -1;
-
-  var z = point;
-  var iterations = 0;
-  while (z.abs() < 2 && iterations < depth) {
-    z = z.pow(2) + point;
+  var z = Complex.zero;
+  var iterations = -1;
+  while (distanceSquared(z) < 4 && iterations < depth) {
+    z = z * z + point;
     iterations++;
   }
   return iterations == depth ? -1 : iterations;
+}
+
+double distanceSquared(Complex z) {
+  return (z.real * z.real) + (z.imaginary * z.imaginary);
 }
 
 class MandelbrotGradient {
