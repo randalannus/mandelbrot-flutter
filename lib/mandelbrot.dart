@@ -120,6 +120,7 @@ Future<Int32List> calcMandelbrotPixels(
       }
     }
 
+    print("test");
     futures.add(calculateLine());
   }
   await Future.wait(futures);
