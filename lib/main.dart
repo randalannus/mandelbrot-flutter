@@ -46,10 +46,6 @@ class MyHomePage extends StatelessWidget {
           children: [
             Expanded(
               child: LayoutBuilder(builder: (context, constraints) {
-                final width = constraints.widthConstraints().maxWidth;
-                final height = constraints.heightConstraints().maxHeight;
-                //Provider.of<SettingsProvider>(context, listen: false).size =
-                //    Size(width, height);
                 return SizedBox(
                     width: constraints.widthConstraints().maxWidth,
                     height: constraints.heightConstraints().maxHeight,

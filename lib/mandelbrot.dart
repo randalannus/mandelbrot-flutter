@@ -93,7 +93,6 @@ Future<ui.Image> makeMandelbrotImage(
 
 Future<Int32List> calcMandelbrotPixels(
     Resolution resolution, int depth, Complex center, num zoom) async {
-  await Future.delayed(const Duration(milliseconds: 100));
   final width = resolution.width;
   final height = resolution.height;
   final gradient = MandelbrotGradient();
@@ -105,17 +104,25 @@ Future<Int32List> calcMandelbrotPixels(
   final bot = (-2 / zoom + center.imaginary) / ratio;
   final up = (2 / zoom + center.imaginary) / ratio;
 
+  final futures = <Future>[];
+
   for (int x = 0; x < width; x += 1) {
-    for (int y = 0; y < height; y += 1) {
-      final a = (rt - lft) * x / width + lft;
-      final b = (up - bot) * y / height + bot;
-      final iterations = calculatePoint(Complex(a, b), depth);
-      final color = iterations == -1
-          ? Colors.black.value
-          : gradient.at(iterations % 20 / 20);
-      pixels[x + y * width] = color;
+    Future calculateLine() async {
+      await Future.delayed(Duration.zero);
+      for (int y = 0; y < height; y += 1) {
+        final a = (rt - lft) * x / width + lft;
+        final b = (up - bot) * y / height + bot;
+        final iterations = calculatePoint(Complex(a, b), depth);
+        final color = iterations == -1
+            ? Colors.black.value
+            : gradient.at(iterations % 20 / 20);
+        pixels[x + y * width] = color;
+      }
     }
+
+    futures.add(calculateLine());
   }
+  await Future.wait(futures);
   return pixels;
 }
 
