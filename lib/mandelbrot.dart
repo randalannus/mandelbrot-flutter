@@ -13,7 +13,7 @@ import 'package:provider/provider.dart';
 
 class MandelbrotViewer extends StatelessWidget {
   static const maxScale = 4.0;
-  static const minScale = 0.05;
+  static const minScale = 0.4;
   final controller = TransformationController(Matrix4.diagonal3Values(1, 1, 1));
 
   MandelbrotViewer({
@@ -27,16 +27,47 @@ class MandelbrotViewer extends StatelessWidget {
       if (imageProvider.image == null) {
         return const Center(child: Text("No image"));
       }
-      return InteractiveViewer(
-          boundaryMargin: const EdgeInsets.all(2000.0),
-          minScale: minScale,
-          maxScale: maxScale,
-          transformationController: controller,
-          child: CustomPaint(
-            painter: MandelbrotPainter(imageProvider.image!),
-          ));
+      final image = imageProvider.image!;
+      return FutureBuilder<Uint8List>(
+          future: imageToBytes(image),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return const Center(
+                child: Text("Failed to generate image"),
+              );
+            } else if (!snapshot.hasData || snapshot.data == null) {
+              return const Center(
+                child: Text("Loading image"),
+              );
+            }
+            final bytes = snapshot.data!;
+            return _interactiveViewer(bytes);
+          });
     });
   }
+
+  Widget _interactiveViewer(Uint8List bytes) {
+    return LayoutBuilder(builder: (context, constraints) {
+      final horizontal = constraints.maxWidth / minScale - 100;
+      final vertical = constraints.maxHeight / minScale - 100;
+      return InteractiveViewer(
+        boundaryMargin:
+            EdgeInsets.symmetric(horizontal: horizontal, vertical: vertical),
+        minScale: minScale,
+        maxScale: maxScale,
+        transformationController: controller,
+        child: Image.memory(bytes),
+      );
+    });
+  }
+}
+
+Future<Uint8List> imageToBytes(ui.Image image) async {
+  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+  if (byteData == null) {
+    throw Exception("Failed to decode image to bytes");
+  }
+  return byteData.buffer.asUint8List();
 }
 
 void onDoubleTap(BuildContext context, TapDownDetails details) {
@@ -57,6 +88,7 @@ Complex positionToPoint(
   return Complex(a, b);
 }
 
+@Deprecated("Use flutter Image to render mandelbrot instead.")
 class MandelbrotPainter extends CustomPainter {
   final ui.Image image;
 
@@ -65,11 +97,16 @@ class MandelbrotPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint();
-    canvas.drawImage(image, Offset.zero, paint);
+    //canvas.drawRect(Rect.fromLTRB(0, 0, size.width, size.height), paint);
+    canvas.drawImage(
+        image,
+        Offset(
+            (size.width - image.width) / 2, (size.height - image.height) / 2),
+        paint);
   }
 
   @override
-  bool shouldRepaint(MandelbrotPainter oldDelegate) => true;
+  bool shouldRepaint(MandelbrotPainter oldDelegate) => false;
 }
 
 Future<ui.Image> makeMandelbrotImage(
